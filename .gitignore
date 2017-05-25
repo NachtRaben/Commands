@@ -20,7 +20,7 @@ gradle/
 .gradle/
 gradlew
 gradlew.bat
-*.gradle
+settings.gradle
 
 # eclipse
 .classpath
@@ -34,3 +34,4 @@ bin/
 *.iws
 *.ipr
 out/
+src/main/resources/
