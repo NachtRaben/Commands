@@ -1,4 +1,4 @@
-group 'com.nachtraben'
+group 'com.github.nachtraben'
 version '1.0'
 
 apply plugin: 'java'
