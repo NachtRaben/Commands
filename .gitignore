@@ -1,0 +1,36 @@
+# project
+config.json
+logs/
+guilds/
+scripts/
+src/test/
+*.log
+
+# music
+*.mp3
+*.aac
+*.m4a
+*.wav
+*.flac
+*.ogg
+
+# gradle
+build/
+gradle/
+.gradle/
+gradlew
+gradlew.bat
+*.gradle
+
+# eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# intellij
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
