@@ -1,7 +1,5 @@
 package com.nachtraben.orangeslice;
 
-import com.nachtraben.core.utils.StringUtils;
-
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -138,7 +136,7 @@ public abstract class Command {
             CommandArg cmdarg = commandArgs[i];
             if (cmdarg.isDynamic) {
                 if (cmdarg.isRest) {
-                    result.put(cmdarg.name.toLowerCase(), StringUtils.arrayToString(Arrays.copyOfRange(args, i, args.length)));
+                    result.put(cmdarg.name.toLowerCase(), arrayToString(Arrays.copyOfRange(args, i, args.length)));
                     return result;
                 } else {
                     result.put(cmdarg.name.toLowerCase(), args[i]);
@@ -146,6 +144,16 @@ public abstract class Command {
             }
         }
         return result;
+    }
+
+    private String arrayToString(String[] args) {
+        if (args.length == 0) return "";
+        StringBuilder sb = new StringBuilder();
+        for (String s : args) {
+            sb.append(s).append(" ");
+        }
+        sb.replace(sb.length() - 1, sb.length(), "");
+        return sb.toString();
     }
 
     public abstract void run(CommandSender sender, Map<String, String> args, Map<String, String> flags);
