@@ -10,4 +10,5 @@ public interface CommandSender {
     void sendMessage(String message);
     String getName();
     Future<CommandEvent> runCommand(String command, String[] args);
+
 }

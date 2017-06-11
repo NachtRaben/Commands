@@ -26,9 +26,9 @@ public abstract class Command {
     private static final String optionalRestRegex = "(\\s+" + restRegex + ")?";
     private static final String firstOptionalRestRegex = "(" + restRegex + ")?";
 
-    static final Pattern flagsRegex = Pattern.compile("^-\\w+$", 0);
-    static final Pattern flagRegex = Pattern.compile("^--\\w+$");
-    static final Pattern flagWithValue = Pattern.compile("^--\\w+=\\S+$", 0);
+    static final Pattern flagsRegex = Pattern.compile("^\\s+-\\w+\\s+$", 0);
+    static final Pattern flagRegex = Pattern.compile("^\\s+--\\w+\\s+$");
+    static final Pattern flagWithValue = Pattern.compile("^\\s+--\\w+=\\S+\\s+$", 0);
 
     public Command(String name, String format) {
         this.name = name;
