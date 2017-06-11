@@ -7,9 +7,7 @@ import java.util.concurrent.Future;
  */
 public interface CommandSender {
 
-    void sendMessage(String s);
-    boolean hasPermission();
+    void sendMessage(String message);
     String getName();
-
     Future<CommandEvent> runCommand(String command, String[] args);
 }
