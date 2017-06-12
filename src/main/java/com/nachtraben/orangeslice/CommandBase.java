@@ -4,6 +4,7 @@ import com.nachtraben.orangeslice.command.AnnotatedCommand;
 import com.nachtraben.orangeslice.command.Cmd;
 import com.nachtraben.orangeslice.command.Command;
 import com.nachtraben.orangeslice.event.CommandEventListener;
+import com.nachtraben.orangeslice.event.CommandExceptionEvent;
 import com.nachtraben.orangeslice.event.CommandPreProcessEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,6 +103,8 @@ public class CommandBase {
                         return CommandResult.SUCCESS;
                     } catch (Exception e) {
                         LOGGER.error("An error occurred while processing one of the commands.", e);
+                        CommandExceptionEvent exceptionEvent = new CommandExceptionEvent(sender, canidate, e);
+                        eventListeners.forEach(el -> el.onCommandException(exceptionEvent));
                         return CommandResult.EXCEPTION;
                     }
                 } else {

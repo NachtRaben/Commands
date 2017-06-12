@@ -5,4 +5,6 @@ package com.nachtraben.orangeslice.event;
  */
 public interface CommandEventListener {
     void onCommandPreProcess(CommandPreProcessEvent event);
+
+    void onCommandException(CommandExceptionEvent exceptionEvent);
 }
