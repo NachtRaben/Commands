@@ -4,10 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -19,14 +16,16 @@ public class CommandBase {
 
     private static final Logger logger = LoggerFactory.getLogger(CommandBase.class);
 
-    private Map<String, List<Command>> COMMANDS;
+    private Map<String, List<Command>> commands;
+    private Map<String, CommandModule> modules;
     private ExecutorService executor;
 
-    private List<CommandEventHandler> eventHandlers;
+    private List<CommandEventListener> eventListeners;
 
     public CommandBase() {
-        COMMANDS = new HashMap<>();
-        eventHandlers = new ArrayList<>();
+        commands = new HashMap<>();
+        modules = new HashMap<>();
+        eventListeners = new ArrayList<>();
         ThreadGroup group = new ThreadGroup("Command Threads");
         executor = Executors.newCachedThreadPool(r -> new Thread(group, r, "CommandThread-" + group.activeCount()));
     }
@@ -34,11 +33,11 @@ public class CommandBase {
     public void registerCommands(Object object) {
         if (object instanceof Command) {
             Command command = (Command) object;
-            List<Command> commands = COMMANDS.computeIfAbsent(command.name, list -> new ArrayList<>());
+            List<Command> commands = this.commands.computeIfAbsent(command.name, list -> new ArrayList<>());
             // TODO: Command overlapping.
             commands.add(command);
             for (String alias : command.aliases) {
-                List<Command> aliasedCommands = COMMANDS.computeIfAbsent(alias, list -> new ArrayList<>());
+                List<Command> aliasedCommands = this.commands.computeIfAbsent(alias, list -> new ArrayList<>());
                 aliasedCommands.add(command);
             }
             logger.info("Added command, " + command.toString());
@@ -48,12 +47,21 @@ public class CommandBase {
         for (Method method : object.getClass().getMethods()) {
             if (method.isAnnotationPresent(Cmd.class)) {
                 Cmd cmd = method.getAnnotation(Cmd.class);
+                CmdModules cmdMods = method.getAnnotation(CmdModules.class);
                 AnnotatedCommand command = new AnnotatedCommand(cmd, object, method);
-                List<Command> commands = COMMANDS.computeIfAbsent(command.name, list -> new ArrayList<>());
+                if(cmdMods != null) {
+                    for(String s : cmdMods.modules()) {
+                        if(modules.containsKey(s))
+                            command.addCommandModule(modules.get(s));
+                        else
+                            throw new CommandCreationException(command, "Module { " + s + " } was not registered in the CommandBase.");
+                    }
+                }
+                List<Command> commands = this.commands.computeIfAbsent(command.name, list -> new ArrayList<>());
                 // TODO: Command overlapping.
                 commands.add(command);
                 for (String alias : command.aliases) {
-                    List<Command> aliasedCommands = COMMANDS.computeIfAbsent(alias, list -> new ArrayList<>());
+                    List<Command> aliasedCommands = this.commands.computeIfAbsent(alias, list -> new ArrayList<>());
                     aliasedCommands.add(command);
                 }
                 logger.info("Added command, " + command.toString());
@@ -63,7 +71,7 @@ public class CommandBase {
 
     public Future<CommandEvent> execute(final CommandSender sender, final String command, final String[] arguments) {
         return executor.submit(() -> {
-            CommandEvent event;
+            CommandEvent event = null;
             Map<String, String> flags = new HashMap<>();
             ArrayList<String> processedArgs = new ArrayList<>();
 
@@ -89,17 +97,30 @@ public class CommandBase {
                 //TODO: Flag validation
                 //TODO: Variable conversion
                 Map<String, String> mapargs = canidate.processArgs(args);
-                try {
-                    canidate.run(sender, mapargs, flags);
-                    event = new CommandEvent(sender, canidate, CommandEvent.Result.SUCCESS);
-                } catch (Exception e) {
-                    event = new CommandEvent(sender, canidate, CommandEvent.Result.EXCEPTION, e);
+
+                boolean canRun = true;
+                for(CommandModule module : canidate.getCommandModules()) {
+                    if(!module.run(canidate, sender, mapargs, flags)) {
+                        canRun = false;
+                        break;
+                    }
+                }
+
+                if(canRun) {
+                    try {
+                        canidate.run(sender, mapargs, flags);
+                        event = new CommandEvent(sender, canidate, CommandEvent.Result.SUCCESS);
+                    } catch (Exception e) {
+                        event = new CommandEvent(sender, canidate, CommandEvent.Result.EXCEPTION, e);
+                    }
+                } else {
+                    event = new CommandEvent(sender, canidate, CommandEvent.Result.FAILED);
                 }
             } else {
                 event = new CommandEvent(sender, null, CommandEvent.Result.COMMAND_NOT_FOUND);
             }
 
-            for(CommandEventHandler handler : eventHandlers) {
+            for(CommandEventListener handler : eventListeners) {
                 handler.handle(event);
             }
 
@@ -108,7 +129,7 @@ public class CommandBase {
     }
 
     private Command getCommandMatch(CommandSender sender, String command, String[] arguments) {
-        List<Command> canidates = this.COMMANDS.get(command);
+        List<Command> canidates = this.commands.get(command);
 
         if (canidates != null) {
             for (Command canidate : canidates) {
@@ -121,8 +142,24 @@ public class CommandBase {
         return null;
     }
 
-    public void addEventListener(CommandEventHandler handler) {
-        this.eventHandlers.add(handler);
+    public void registerEventListener(CommandEventListener handler) {
+        eventListeners.add(handler);
+    }
+
+    public void unregisterEventListner(CommandEventListener listener) {
+        eventListeners.remove(listener);
+    }
+
+    public void registerCommandModule(String key, CommandModule module) {
+        modules.put(key, module);
+    }
+
+    public void deregisterCommandModule(String key) {
+        modules.remove(key);
+    }
+
+    public Map<String, CommandModule> getCommandModules() {
+        return new HashMap<>(modules);
     }
 
     private String arrayToString(String[] args) {
@@ -142,7 +179,7 @@ public class CommandBase {
     }
 
     public Map<String, List<Command>> getCommands() {
-        return new HashMap<>(COMMANDS);
+        return new HashMap<>(commands);
     }
 
 }

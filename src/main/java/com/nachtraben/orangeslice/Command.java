@@ -16,6 +16,7 @@ public abstract class Command {
     CommandArg[] commandArgs;
     CommandFlag[] commandFlags;
     Pattern pattern;
+    List<CommandModule> commandModules;
 
     private static final String requiredRegex = "\\S+";
 
@@ -26,9 +27,9 @@ public abstract class Command {
     private static final String optionalRestRegex = "(\\s+" + restRegex + ")?";
     private static final String firstOptionalRestRegex = "(" + restRegex + ")?";
 
-    static final Pattern flagsRegex = Pattern.compile("^\\s+-\\w+\\s+$", 0);
-    static final Pattern flagRegex = Pattern.compile("^\\s+--\\w+\\s+$");
-    static final Pattern flagWithValue = Pattern.compile("^\\s+--\\w+=\\S+\\s+$", 0);
+    static final Pattern flagsRegex = Pattern.compile("^-\\w+$", 0);
+    static final Pattern flagRegex = Pattern.compile("^--\\w+$");
+    static final Pattern flagWithValue = Pattern.compile("^--\\w+=\\S+$", 0);
 
     public Command(String name, String format) {
         this.name = name;
@@ -36,6 +37,7 @@ public abstract class Command {
         aliases = new String[]{};
         flags = new String[]{};
         commandArgs = new CommandArg[]{};
+        this.commandModules = new ArrayList<>();
         validateFormat();
         buildPattern();
         buildFlags();
@@ -156,6 +158,14 @@ public abstract class Command {
         return sb.toString();
     }
 
+    public void addCommandModule(CommandModule... modules) {
+        Collections.addAll(commandModules, modules);
+    }
+
+    public void removeCommandModule(CommandModule... modules) {
+        commandModules.removeAll(Arrays.asList(modules));
+    }
+
     public abstract void run(CommandSender sender, Map<String, String> args, Map<String, String> flags);
 
     public String helpString() {
@@ -195,6 +205,10 @@ public abstract class Command {
 
     public Pattern getPattern() {
         return pattern;
+    }
+
+    public List<CommandModule> getCommandModules() {
+        return commandModules;
     }
 
     class CommandArg {

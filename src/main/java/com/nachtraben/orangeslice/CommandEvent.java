@@ -48,6 +48,6 @@ public class CommandEvent {
     }
 
     public enum Result {
-        SUCCESS, COMMAND_NOT_FOUND, EXCEPTION, INVALID_FLAGS
+        SUCCESS, COMMAND_NOT_FOUND, EXCEPTION, INVALID_FLAGS, FAILED
     }
 }
