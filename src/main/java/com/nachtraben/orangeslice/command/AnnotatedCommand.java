@@ -38,8 +38,19 @@ public class AnnotatedCommand extends Command {
         Parameter[] parameters = method.getParameters();
 
         switch (parameters.length) {
+            case 4: {
+                size = 4;
+                if(!Map.class.isAssignableFrom(parameters[3].getType())) {
+                    throw new CommandCreationException(this, "Parameter[4] was not assignable from Map<String, String>.");
+                }
+                if (parameters[3].getParameterizedType() == null || !parameters[3].getParameterizedType().getTypeName().equals("java.util.Map<java.lang.String, java.lang.String>")) {
+                    throw new CommandCreationException(this, "Parameter[2] was not assignable from Map<String, String>.");
+                }
+            }
             case 3: {
-                size = 3;
+                if(size < 3) {
+                    size = 3;
+                }
                 if (!Map.class.isAssignableFrom(parameters[2].getType())) {
                     throw new CommandCreationException(this, "Parameter[2] was not assignable from Map<String, String>.");
                 }
@@ -77,6 +88,10 @@ public class AnnotatedCommand extends Command {
     public void run(CommandSender sender, Map<String, String> args, Map<String, String> flags) {
         try {
             switch (size) {
+                case 4: {
+                    method.invoke(methodHolder, sender, args, flags, getAttributes());
+                    break;
+                }
                 case 3: {
                     method.invoke(methodHolder, sender, args, flags);
                     break;
