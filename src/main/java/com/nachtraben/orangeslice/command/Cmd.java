@@ -1,4 +1,4 @@
-package com.nachtraben.orangeslice;
+package com.nachtraben.orangeslice.command;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -18,5 +18,6 @@ public @interface Cmd {
     String description();
     String[] aliases() default {};
     String[] flags() default {};
+    CmdAttribute[] attributes() default {};
 
 }

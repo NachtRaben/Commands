@@ -1,8 +1,12 @@
-package com.nachtraben.orangeslice;
+package com.nachtraben.orangeslice.command;
+
+import com.nachtraben.orangeslice.CommandCreationException;
+import com.nachtraben.orangeslice.CommandSender;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -16,15 +20,17 @@ public class AnnotatedCommand extends Command {
 
     int size = 0;
 
-    AnnotatedCommand(Cmd cmd, Object methodHolder, Method method) throws CommandCreationException {
-        super(cmd.name(), cmd.format());
+    public AnnotatedCommand(Cmd cmd, Object methodHolder, Method method) throws CommandCreationException {
+        super(cmd.name(), cmd.format(), cmd.description());
         this.cmd = cmd;
         this.methodHolder = methodHolder;
         this.method = method;
+        for(CmdAttribute attribute : cmd.attributes()) {
+            setAttribute(attribute.identifier(), attribute.value());
+        }
 
-        description = cmd.description();
-        aliases = cmd.aliases();
-        flags = cmd.flags();
+        setAliases(Arrays.asList(cmd.aliases()));
+        setFlags(Arrays.asList(cmd.flags()));
         validateMethod();
     }
 

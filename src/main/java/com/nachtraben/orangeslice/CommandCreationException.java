@@ -1,5 +1,7 @@
 package com.nachtraben.orangeslice;
 
+import com.nachtraben.orangeslice.command.Command;
+
 /**
  * Created by NachtRaben on 3/8/2017.
  */
