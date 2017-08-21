@@ -1,8 +1,5 @@
 package com.nachtraben.orangeslice.command;
 
-/**
- * This can be used to add attribute modifiers to {@Link Cmd} annotations.
- */
 public @interface CmdAttribute {
 
     /**

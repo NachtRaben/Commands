@@ -27,31 +27,11 @@ public abstract class Command {
 
     private CommandBase commandBase;
 
-    /**
-     * The constant requiredRegex. Used to process "<>" args in formatting.
-     */
     public static final String requiredRegex = "\\S+";
-
-    /**
-     * The constant optionalRegex. Used to process "[]" args in formatting.
-     */
     public static final String optionalRegex = "(\\s+\\S+)?";
-    /**
-     * The constant firstOptionalRegex. Used to process "[]" args at the front of the formatting.
-     */
     public static final String firstOptionalRegex = "(\\S+)?";
-
-    /**
-     * The constant restRegex. Used to process non dynamic args in formatting.
-     */
     public static final String restRegex = "(?!\\s*$).+";
-    /**
-     * The constant optionalRestRegex. Used to process "{}" args in formatting.
-     */
     public static final String optionalRestRegex = "(\\s+" + restRegex + ")?";
-    /**
-     * The constant firstOptionalRestRegex. Used to process "{}" at the front of the formatting.
-     */
     public static final String firstOptionalRestRegex = "(" + restRegex + ")?";
 
     /**
