@@ -260,7 +260,7 @@ public abstract class Command {
      *
      * @param aliases the aliases
      */
-    void setAliases(List<String> aliases) {
+    public void setAliases(List<String> aliases) {
         List<String> old = new ArrayList<>();
         this.aliases = aliases;
         if(commandBase != null)
@@ -311,7 +311,7 @@ public abstract class Command {
      *
      * @param attributes the attributes
      */
-    void setAttributes(Map<String, Object> attributes) {
+    public void setAttributes(Map<String, Object> attributes) {
         this.attributes = attributes;
     }
 
@@ -322,7 +322,7 @@ public abstract class Command {
      * @param identifier the identifier
      * @param value      the value
      */
-    void setAttribute(String identifier, Object value) {
+    public void setAttribute(String identifier, Object value) {
         this.attributes.put(identifier, value);
     }
 

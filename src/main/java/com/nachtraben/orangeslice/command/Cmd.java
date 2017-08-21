@@ -18,6 +18,5 @@ public @interface Cmd {
     String description();
     String[] aliases() default {};
     String[] flags() default {};
-    CmdAttribute[] attributes() default {};
 
 }

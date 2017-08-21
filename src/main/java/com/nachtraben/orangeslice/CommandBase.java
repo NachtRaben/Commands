@@ -2,6 +2,7 @@ package com.nachtraben.orangeslice;
 
 import com.nachtraben.orangeslice.command.AnnotatedCommand;
 import com.nachtraben.orangeslice.command.Cmd;
+import com.nachtraben.orangeslice.command.CmdAttribute;
 import com.nachtraben.orangeslice.command.Command;
 import com.nachtraben.orangeslice.event.CommandEventListener;
 import com.nachtraben.orangeslice.event.CommandExceptionEvent;
@@ -61,6 +62,11 @@ public class CommandBase {
             if (method.isAnnotationPresent(Cmd.class)) {
                 Cmd cmd = method.getAnnotation(Cmd.class);
                 AnnotatedCommand command = new AnnotatedCommand(cmd, object, method);
+                if (method.isAnnotationPresent(CmdAttribute.class)) {
+                    for(CmdAttribute attrib : method.getAnnotationsByType(CmdAttribute.class)) {
+                        command.setAttribute(attrib.name(), attrib.value());
+                    }
+                }
                 command.setCommandBase(this);
                 List<Command> commands = this.commands.computeIfAbsent(command.getName(), list -> new ArrayList<>());
                 // TODO: Command overlapping.

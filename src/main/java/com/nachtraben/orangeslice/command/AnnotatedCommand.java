@@ -25,9 +25,6 @@ public class AnnotatedCommand extends Command {
         this.cmd = cmd;
         this.methodHolder = methodHolder;
         this.method = method;
-        for(CmdAttribute attribute : cmd.attributes()) {
-            setAttribute(attribute.identifier(), attribute.value());
-        }
 
         setAliases(Arrays.asList(cmd.aliases()));
         setFlags(Arrays.asList(cmd.flags()));
