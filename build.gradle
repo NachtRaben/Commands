@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id "com.github.johnrengelman.shadow" version "2.0.0"
 }
 
 group 'com.github.nachtraben'
@@ -16,3 +17,19 @@ dependencies {
     compile 'org.slf4j:slf4j-api:1.7.25'
     testCompile 'ch.qos.logback:logback-classic:1.1.9'
 }
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+

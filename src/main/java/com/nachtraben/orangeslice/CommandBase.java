@@ -45,6 +45,7 @@ public class CommandBase {
     public void registerCommands(Object object) {
         if (object instanceof Command) {
             Command command = (Command) object;
+            command.setCommandBase(this);
             List<Command> commands = this.commands.computeIfAbsent(command.getName(), list -> new ArrayList<>());
             // TODO: Command overlapping.
             commands.add(command);
@@ -60,6 +61,7 @@ public class CommandBase {
             if (method.isAnnotationPresent(Cmd.class)) {
                 Cmd cmd = method.getAnnotation(Cmd.class);
                 AnnotatedCommand command = new AnnotatedCommand(cmd, object, method);
+                command.setCommandBase(this);
                 List<Command> commands = this.commands.computeIfAbsent(command.getName(), list -> new ArrayList<>());
                 // TODO: Command overlapping.
                 commands.add(command);
@@ -197,4 +199,16 @@ public class CommandBase {
         return new HashMap<>(commands);
     }
 
+    public void updateAliases(Command command, List<String> old, List<String> newaliases) {
+        for (String alias : old) {
+            List<Command> aliasedCommands = this.commands.computeIfAbsent(alias, list -> new ArrayList<>());
+            aliasedCommands.remove(command);
+            if(aliasedCommands.isEmpty())
+                this.commands.remove(alias);
+        }
+        for(String alias : newaliases) {
+            List<Command> aliasedCommands = this.commands.computeIfAbsent(alias, list -> new ArrayList<>());
+            aliasedCommands.add(command);
+        }
+    }
 }

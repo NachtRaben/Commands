@@ -1,5 +1,6 @@
 package com.nachtraben.orangeslice.command;
 
+import com.nachtraben.orangeslice.CommandBase;
 import com.nachtraben.orangeslice.CommandCreationException;
 import com.nachtraben.orangeslice.CommandSender;
 
@@ -17,12 +18,14 @@ public abstract class Command {
 
     private List<String> aliases;
     private List<String> flags;
-    private Map<String, String> attributes;
+    private Map<String, Object> attributes;
 
     private List<CommandArg> commandArgs;
     private List<CommandFlag> commandFlags;
 
     private Pattern pattern;
+
+    private CommandBase commandBase;
 
     /**
      * The constant requiredRegex. Used to process "<>" args in formatting.
@@ -278,7 +281,10 @@ public abstract class Command {
      * @param aliases the aliases
      */
     void setAliases(List<String> aliases) {
+        List<String> old = new ArrayList<>();
         this.aliases = aliases;
+        if(commandBase != null)
+            commandBase.updateAliases(this, old, aliases);
     }
 
     /**
@@ -304,8 +310,20 @@ public abstract class Command {
      *
      * @return the attributes
      */
-    public Map<String, String> getAttributes() {
+    public Map<String, Object> getAttributes() {
         return attributes;
+    }
+
+    public Object getAttribute(String key) {
+        return attributes.get(key);
+    }
+
+    public <T> T getAttribute(String key, Class<T> tClass) {
+        Object o = attributes.get(key);
+        if(o != null) {
+            return tClass.cast(o);
+        }
+        return null;
     }
 
     /**
@@ -313,7 +331,7 @@ public abstract class Command {
      *
      * @param attributes the attributes
      */
-    void setAttributes(Map<String, String> attributes) {
+    void setAttributes(Map<String, Object> attributes) {
         this.attributes = attributes;
     }
 
@@ -324,7 +342,7 @@ public abstract class Command {
      * @param identifier the identifier
      * @param value      the value
      */
-    void setAttribute(String identifier, String value) {
+    void setAttribute(String identifier, Object value) {
         this.attributes.put(identifier, value);
     }
 
@@ -335,6 +353,14 @@ public abstract class Command {
      */
     public Pattern getPattern() {
         return pattern;
+    }
+
+    public CommandBase getCommandBase() {
+        return commandBase;
+    }
+
+    public void setCommandBase(CommandBase commandBase) {
+        this.commandBase = commandBase;
     }
 
     /**
