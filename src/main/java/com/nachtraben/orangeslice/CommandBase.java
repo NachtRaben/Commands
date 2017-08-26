@@ -6,6 +6,7 @@ import com.nachtraben.orangeslice.command.CmdAttribute;
 import com.nachtraben.orangeslice.command.Command;
 import com.nachtraben.orangeslice.event.CommandEventListener;
 import com.nachtraben.orangeslice.event.CommandExceptionEvent;
+import com.nachtraben.orangeslice.event.CommandPostProcessEvent;
 import com.nachtraben.orangeslice.event.CommandPreProcessEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,14 +109,20 @@ public class CommandBase {
                 if(!event.isCancelled()) {
                     try {
                         canidate.run(sender, mappedArguments, mappedFlags);
+                        CommandPostProcessEvent cpp = new CommandPostProcessEvent(sender, canidate, mappedArguments, mappedFlags, CommandResult.SUCCESS);
+                        eventListeners.forEach(el -> el.onCommandPostProcess(cpp));
                         return CommandResult.SUCCESS;
                     } catch (Exception e) {
                         LOGGER.error("An error occurred while processing one of the commands.", e);
                         CommandExceptionEvent exceptionEvent = new CommandExceptionEvent(sender, canidate, e);
                         eventListeners.forEach(el -> el.onCommandException(exceptionEvent));
+                        CommandPostProcessEvent cpp = new CommandPostProcessEvent(sender, canidate, mappedArguments, mappedFlags, CommandResult.EXCEPTION, e);
+                        eventListeners.forEach(el -> el.onCommandPostProcess(cpp));
                         return CommandResult.EXCEPTION;
                     }
                 } else {
+                    CommandPostProcessEvent cpp = new CommandPostProcessEvent(sender, canidate, mappedArguments, mappedFlags, CommandResult.CANCELLED);
+                    eventListeners.forEach(el -> el.onCommandPostProcess(cpp));
                     return CommandResult.CANCELLED;
                 }
             } else {
