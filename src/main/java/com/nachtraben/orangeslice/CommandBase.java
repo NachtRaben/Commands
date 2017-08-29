@@ -25,6 +25,7 @@ public class CommandBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandBase.class);
 
     private Map<String, List<Command>> commands;
+    private Map<String, String> aliases;
     private ExecutorService executor;
 
     private List<CommandEventListener> eventListeners;
@@ -34,6 +35,7 @@ public class CommandBase {
      */
     public CommandBase() {
         commands = new HashMap<>();
+        aliases = new HashMap<>();
         eventListeners = new ArrayList<>();
         ThreadGroup group = new ThreadGroup("Command Threads");
         executor = Executors.newCachedThreadPool(r -> new Thread(group, r, "CommandThread-" + group.activeCount()));
@@ -51,10 +53,8 @@ public class CommandBase {
             List<Command> commands = this.commands.computeIfAbsent(command.getName(), list -> new ArrayList<>());
             // TODO: Command overlapping.
             commands.add(command);
-            for (String alias : command.getAliases()) {
-                List<Command> aliasedCommands = this.commands.computeIfAbsent(alias, list -> new ArrayList<>());
-                aliasedCommands.add(command);
-            }
+            for(String alias : command.getAliases())
+                aliases.put(alias, command.getName());
             LOGGER.info("Added command, " + command.toString());
         }
 
@@ -72,10 +72,8 @@ public class CommandBase {
                 List<Command> commands = this.commands.computeIfAbsent(command.getName(), list -> new ArrayList<>());
                 // TODO: Command overlapping.
                 commands.add(command);
-                for (String alias : command.getAliases()) {
-                    List<Command> aliasedCommands = this.commands.computeIfAbsent(alias, list -> new ArrayList<>());
-                    aliasedCommands.add(command);
-                }
+                for(String alias : command.getAliases())
+                    aliases.put(alias, command.getName());
                 LOGGER.info("Added command, " + command.toString());
             }
         }
@@ -148,7 +146,14 @@ public class CommandBase {
     }
 
     private Command getCommandMatch(CommandSender sender, String command, String[] arguments) {
-        List<Command> canidates = commands.get(command);
+        List<Command> canidates = null;
+
+        if(commands.containsKey(command))
+            canidates = commands.get(command);
+
+        if(canidates == null && aliases.containsKey(command))
+            canidates = commands.get(aliases.get(command));
+
         if (canidates != null) {
             for (Command canidate : canidates) {
                 if (canidate.getPattern().matcher(arrayToString(arguments)).find()) {
