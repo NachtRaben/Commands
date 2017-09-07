@@ -27,6 +27,7 @@ public class CommandBase {
     private Map<String, List<Command>> commands;
     private Map<String, String> aliases;
     private ExecutorService executor;
+    private boolean processFlags = true;
 
     private List<CommandEventListener> eventListeners;
 
@@ -111,7 +112,6 @@ public class CommandBase {
                         eventListeners.forEach(el -> el.onCommandPostProcess(cpp));
                         return CommandResult.SUCCESS;
                     } catch (Exception e) {
-                        LOGGER.error("An error occurred while processing one of the commands.", e);
                         CommandExceptionEvent exceptionEvent = new CommandExceptionEvent(sender, canidate, e);
                         eventListeners.forEach(el -> el.onCommandException(exceptionEvent));
                         CommandPostProcessEvent cpp = new CommandPostProcessEvent(sender, canidate, mappedArguments, mappedFlags, CommandResult.EXCEPTION, e);
@@ -124,23 +124,30 @@ public class CommandBase {
                     return CommandResult.CANCELLED;
                 }
             } else {
+                CommandPostProcessEvent cpp = new CommandPostProcessEvent(sender, null, null, null, CommandResult.UNKNOWN_COMMAND);
+                eventListeners.forEach(el -> el.onCommandPostProcess(cpp));
                 return CommandResult.UNKNOWN_COMMAND;
             }
         });
     }
 
     private void filterArgsAndFlags(String[] arguments, Map<String, String> flags, ArrayList<String> processedArgs) {
+        // TODO: Flag processing toggle.
         for (String s : arguments) {
-            if (Command.flagsRegex.matcher(s).find()) {
+            if (processFlags && Command.flagsRegex.matcher(s).find()) {
                 for (char c : s.substring(1).toCharArray()) {
                     flags.put(String.valueOf(c), null);
                 }
-            } else if (Command.flagRegex.matcher(s).find()) {
+            } else if (processFlags && Command.flagRegex.matcher(s).find()) {
                 flags.put(s.substring(2), null);
-            } else if (Command.flagWithValue.matcher(s).find()) {
+            } else if (processFlags && Command.flagWithValue.matcher(s).find()) {
                 flags.put(s.substring(2, s.indexOf("=")), s.substring(s.indexOf("=") + 1));
             } else {
-                processedArgs.add(s);
+                // Process flag escape
+                if(s.startsWith("\\-"))
+                    processedArgs.add(s.replace("\\", ""));
+                else
+                    processedArgs.add(s);
             }
         }
     }
@@ -215,6 +222,18 @@ public class CommandBase {
      */
     public Map<String, List<Command>> getCommands() {
         return new HashMap<>(commands);
+    }
+
+    public Map<String, String> getAliases() {
+        return new HashMap<>(aliases);
+    }
+
+    public boolean isProcessFlags() {
+        return processFlags;
+    }
+
+    public void setProcessFlags(boolean b) {
+        processFlags = b;
     }
 
     public void updateAliases(Command command, List<String> old, List<String> newaliases) {
