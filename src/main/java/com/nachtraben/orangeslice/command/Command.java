@@ -111,7 +111,7 @@ public abstract class Command {
                 CommandArg arg = commandArgs.get(i);
                 if (!arg.isRequired) {
                     if (i == 0) {
-                        if(arg.isRest) {
+                        if (arg.isRest) {
                             sb.append(firstOptionalRestRegex);
                         } else {
                             sb.append(firstOptionalRegex);
@@ -260,10 +260,10 @@ public abstract class Command {
      *
      * @param aliases the aliases
      */
-    public void setAliases(List<String> aliases) {
-        List<String> old = new ArrayList<>();
+    protected void setAliases(List<String> aliases) {
+        List<String> old = this.aliases;
         this.aliases = aliases;
-        if(commandBase != null)
+        if (commandBase != null)
             commandBase.updateAliases(this, old, aliases);
     }
 
@@ -281,8 +281,9 @@ public abstract class Command {
      *
      * @param flags the flags
      */
-    void setFlags(List<String> flags) {
+    protected void setFlags(List<String> flags) throws CommandCreationException {
         this.flags = flags;
+        buildFlags();
     }
 
     /**
@@ -300,7 +301,7 @@ public abstract class Command {
 
     public <T> T getAttribute(String key, Class<T> tClass) {
         Object o = attributes.get(key);
-        if(o != null) {
+        if (o != null) {
             return tClass.cast(o);
         }
         return null;

@@ -1,9 +1,6 @@
 package com.nachtraben.orangeslice;
 
-import com.nachtraben.orangeslice.command.AnnotatedCommand;
-import com.nachtraben.orangeslice.command.Cmd;
-import com.nachtraben.orangeslice.command.CmdAttribute;
-import com.nachtraben.orangeslice.command.Command;
+import com.nachtraben.orangeslice.command.*;
 import com.nachtraben.orangeslice.event.CommandEventListener;
 import com.nachtraben.orangeslice.event.CommandExceptionEvent;
 import com.nachtraben.orangeslice.event.CommandPostProcessEvent;
@@ -25,7 +22,7 @@ public class CommandBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandBase.class);
 
     private Map<String, List<Command>> commands;
-    private Map<String, String> aliases;
+    private Map<String, List<Command>> aliases;
     private ExecutorService executor;
     private boolean processFlags = true;
 
@@ -53,10 +50,22 @@ public class CommandBase {
             command.setCommandBase(this);
             List<Command> commands = this.commands.computeIfAbsent(command.getName(), list -> new ArrayList<>());
             // TODO: Command overlapping.
+            if(commands.contains(command))
+                return;
+
             commands.add(command);
-            for(String alias : command.getAliases())
-                aliases.put(alias, command.getName());
+            for(String alias : command.getAliases()) {
+                List<Command> aliases = this.commands.computeIfAbsent(alias, list -> new ArrayList<>());
+                if(aliases.contains(command))
+                    continue;
+
+                aliases.add(command);
+            }
             LOGGER.info("Added command, " + command.toString());
+        } else if(object instanceof CommandTree) {
+            CommandTree tree = (CommandTree) object;
+            LOGGER.info("Registering CommandTree: " + tree.getClass().getSimpleName());
+            tree.registerChildren(this);
         }
 
         // Process any annotated commands
@@ -73,8 +82,10 @@ public class CommandBase {
                 List<Command> commands = this.commands.computeIfAbsent(command.getName(), list -> new ArrayList<>());
                 // TODO: Command overlapping.
                 commands.add(command);
-                for(String alias : command.getAliases())
-                    aliases.put(alias, command.getName());
+                for(String alias : command.getAliases()) {
+                    List<Command> aliases = this.aliases.computeIfAbsent(alias, list -> new ArrayList<>());
+                    aliases.add(command);
+                }
                 LOGGER.info("Added command, " + command.toString());
             }
         }
@@ -101,7 +112,13 @@ public class CommandBase {
             Command canidate = getCommandMatch(sender, command, args);
 
             if (canidate != null) {
-                //TODO: Flag validation
+                for(Map.Entry<String, String> flags : mappedFlags.entrySet()) {
+                    if(!canidate.getFlags().contains(flags.getKey())) {
+                        CommandPostProcessEvent cpp = new CommandPostProcessEvent(sender, canidate, mappedFlags, mappedFlags, CommandResult.INVALID_FLAGS, new IllegalArgumentException("{ " + flags.getKey() + " } is not a valid flag for the command."));
+                        eventListeners.forEach(el -> el.onCommandPostProcess(cpp));
+                        return CommandResult.INVALID_FLAGS;
+                    }
+                }
                 Map<String, String> mappedArguments = canidate.processArgs(args);
                 CommandPreProcessEvent event = new CommandPreProcessEvent(sender, canidate, mappedArguments, mappedFlags);
                 eventListeners.forEach(el -> el.onCommandPreProcess(event));
@@ -132,7 +149,7 @@ public class CommandBase {
     }
 
     private void filterArgsAndFlags(String[] arguments, Map<String, String> flags, ArrayList<String> processedArgs) {
-        // TODO: Flag processing toggle.
+        // TODO: Filter args/flags with "" as a single value
         for (String s : arguments) {
             if (processFlags && Command.flagsRegex.matcher(s).find()) {
                 for (char c : s.substring(1).toCharArray()) {
@@ -153,14 +170,7 @@ public class CommandBase {
     }
 
     private Command getCommandMatch(CommandSender sender, String command, String[] arguments) {
-        List<Command> canidates = null;
-
-        if(commands.containsKey(command))
-            canidates = commands.get(command);
-
-        if(canidates == null && aliases.containsKey(command))
-            canidates = commands.get(aliases.get(command));
-
+        List<Command> canidates = getCommand(command);
         if (canidates != null) {
             for (Command canidate : canidates) {
                 if (canidate.getPattern().matcher(arrayToString(arguments)).find()) {
@@ -207,11 +217,13 @@ public class CommandBase {
      * @param command the command
      */
     public void removeCommand(Command command) {
-        commands.remove(command.getName());
+        List<Command> commands = this.commands.get(command.getName());
+        if(commands != null)
+            commands.remove(command);
         for(String alias : command.getAliases()) {
-            if(commands.containsKey(alias)) {
-                commands.get(alias).remove(command);
-            }
+            List<Command> aliased = this.aliases.get(alias);
+            if(aliased != null)
+                aliased.remove(command);
         }
     }
 
@@ -224,8 +236,15 @@ public class CommandBase {
         return new HashMap<>(commands);
     }
 
-    public Map<String, String> getAliases() {
+    public Map<String, List<Command>> getAliases() {
         return new HashMap<>(aliases);
+    }
+
+    public List<Command> getCommand(String command) {
+        List<Command> commands = this.commands.get(command);
+        if(commands == null)
+            commands = aliases.get(command);
+        return commands;
     }
 
     public boolean isProcessFlags() {
@@ -237,15 +256,14 @@ public class CommandBase {
     }
 
     public void updateAliases(Command command, List<String> old, List<String> newaliases) {
-        for (String alias : old) {
-            List<Command> aliasedCommands = this.commands.computeIfAbsent(alias, list -> new ArrayList<>());
-            aliasedCommands.remove(command);
-            if(aliasedCommands.isEmpty())
-                this.commands.remove(alias);
+        for(String alias : old) {
+            List<Command> commands = this.aliases.get(alias);
+            if(commands != null)
+                commands.remove(command);
         }
         for(String alias : newaliases) {
-            List<Command> aliasedCommands = this.commands.computeIfAbsent(alias, list -> new ArrayList<>());
-            aliasedCommands.add(command);
+            List<Command> commands = this.aliases.computeIfAbsent(alias, list -> new ArrayList<>());
+            commands.add(command);
         }
     }
 }
