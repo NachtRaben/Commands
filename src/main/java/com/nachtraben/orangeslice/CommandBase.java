@@ -113,7 +113,7 @@ public class CommandBase {
 
             if (canidate != null) {
                 for(Map.Entry<String, String> flags : mappedFlags.entrySet()) {
-                    if(!canidate.getFlags().contains(flags.getKey())) {
+                    if(!canidate.getFlags().contains(flags.getKey().replace("=", ""))) {
                         CommandPostProcessEvent cpp = new CommandPostProcessEvent(sender, canidate, mappedFlags, mappedFlags, CommandResult.INVALID_FLAGS, new IllegalArgumentException("{ " + flags.getKey() + " } is not a valid flag for the command."));
                         eventListeners.forEach(el -> el.onCommandPostProcess(cpp));
                         return CommandResult.INVALID_FLAGS;
