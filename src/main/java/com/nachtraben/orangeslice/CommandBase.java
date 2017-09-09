@@ -55,7 +55,7 @@ public class CommandBase {
 
             commands.add(command);
             for(String alias : command.getAliases()) {
-                List<Command> aliases = this.commands.computeIfAbsent(alias, list -> new ArrayList<>());
+                List<Command> aliases = this.aliases.computeIfAbsent(alias, list -> new ArrayList<>());
                 if(aliases.contains(command))
                     continue;
 
