@@ -344,10 +344,14 @@ public abstract class Command {
         this.commandBase = commandBase;
     }
 
+    public List<CommandArg> getCmdArgs() {
+        return commandArgs;
+    }
+
     /**
      * The type Command arg.
      */
-    class CommandArg {
+    public class CommandArg {
         /**
          * The Name.
          */
@@ -378,6 +382,22 @@ public abstract class Command {
             this.isDynamic = isDynamic;
             this.isRequired = isRequired;
             this.isRest = isRest;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public boolean isDynamic() {
+            return isDynamic;
+        }
+
+        public boolean isRequired() {
+            return isRequired;
+        }
+
+        public boolean isRest() {
+            return isRest;
         }
     }
 

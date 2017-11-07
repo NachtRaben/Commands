@@ -19,7 +19,7 @@ import java.util.concurrent.Future;
  */
 public class CommandBase {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CommandBase.class);
+    private static final Logger log = LoggerFactory.getLogger(CommandBase.class);
 
     private Map<String, List<Command>> commands;
     private Map<String, List<Command>> aliases;
@@ -47,24 +47,29 @@ public class CommandBase {
     public void registerCommands(Object object) {
         if (object instanceof Command) {
             Command command = (Command) object;
+
+            Command overlap = checkForOverlaps(command);
+            if (overlap != null) {
+                log.error(String.format("Found an overlapping command. %s{%s} overlaps with previously registered command %s{%s}.", command.getName(), command.getFormat(), overlap.getName(), overlap.getFormat()));
+                return;
+            }
+
             command.setCommandBase(this);
             List<Command> commands = this.commands.computeIfAbsent(command.getName(), list -> new ArrayList<>());
-            // TODO: Command overlapping.
-            if(commands.contains(command))
-                return;
 
             commands.add(command);
             for(String alias : command.getAliases()) {
                 List<Command> aliases = this.aliases.computeIfAbsent(alias, list -> new ArrayList<>());
+                // TODO: Warn about overlapping aliases.
                 if(aliases.contains(command))
                     continue;
 
                 aliases.add(command);
             }
-            LOGGER.info("Added command, " + command.toString());
+            log.info("Added command, " + command.toString());
         } else if(object instanceof CommandTree) {
             CommandTree tree = (CommandTree) object;
-            LOGGER.info("Registering CommandTree: " + tree.getClass().getSimpleName());
+            log.info("Registering CommandTree: " + tree.getClass().getSimpleName());
             tree.registerChildren(this);
         }
 
@@ -78,6 +83,13 @@ public class CommandBase {
                         command.setAttribute(attrib.name(), attrib.value());
                     }
                 }
+
+                Command overlap = checkForOverlaps(command);
+                if (overlap != null) {
+                    log.error(String.format("Found an overlapping command. %s overlaps with previously registered command %s.", command, overlap));
+                    continue;
+                }
+
                 command.setCommandBase(this);
                 List<Command> commands = this.commands.computeIfAbsent(command.getName(), list -> new ArrayList<>());
                 // TODO: Command overlapping.
@@ -86,9 +98,52 @@ public class CommandBase {
                     List<Command> aliases = this.aliases.computeIfAbsent(alias, list -> new ArrayList<>());
                     aliases.add(command);
                 }
-                LOGGER.info("Added command, " + command.toString());
+                log.info("Added command, " + command.toString());
             }
         }
+    }
+
+    private Command checkForOverlaps(Command c) {
+        List<Command.CommandArg> cargs = c.getCmdArgs();
+        for (List<Command> commands : commands.values()) {
+            for (Command comm : commands) {
+                if (!c.getName().equalsIgnoreCase(comm.getName()))
+                    continue;
+
+                boolean matches = true;
+                List<Command.CommandArg> commargs = comm.getCmdArgs();
+                if (cargs.size() == commargs.size()) {
+                    for (int i = 0; i < cargs.size(); i++) {
+                        Command.CommandArg carg = cargs.get(i);
+                        Command.CommandArg commarg = commargs.get(i);
+                        if (i == cargs.size() - 1) {
+                            if (!carg.isRest() && !carg.isRequired() && !commarg.isRequired() && !commarg.isRest())
+                                matches = false;
+                        } else if (!carg.equals(commarg)) {
+                            matches = false;
+                            break;
+                        }
+                    }
+                } else {
+                    List<Command.CommandArg> shorter = cargs.size() < commargs.size() ? cargs : commargs;
+                    List<Command.CommandArg> longer = shorter.equals(cargs) ? commargs : cargs;
+                    for (int i = 0; i < shorter.size(); i++) {
+                        Command.CommandArg shortest = shorter.get(i);
+                        Command.CommandArg longest = longer.get(i);
+                        Command.CommandArg longest2 = longer.get(i + 1);
+                        if (i == shorter.size() - 1) {
+                            matches = (shortest.isRequired() && longest.isRequired() && !longest2.isRequired()) || shortest.isRest();
+                        } else if (!shortest.equals(longest)) {
+                            matches = false;
+                            break;
+                        }
+                    }
+                }
+                if (matches)
+                    return comm;
+            }
+        }
+        return null;
     }
 
     /**
