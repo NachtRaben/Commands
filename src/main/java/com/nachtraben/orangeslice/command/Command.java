@@ -399,6 +399,16 @@ public abstract class Command {
         public boolean isRest() {
             return isRest;
         }
+
+        @Override
+        public String toString() {
+            return "CommandArg{" +
+                    "name='" + name + '\'' +
+                    ", isDynamic=" + isDynamic +
+                    ", isRequired=" + isRequired +
+                    ", isRest=" + isRest +
+                    '}';
+        }
     }
 
     /**

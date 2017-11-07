@@ -58,16 +58,16 @@ public class CommandBase {
             List<Command> commands = this.commands.computeIfAbsent(command.getName(), list -> new ArrayList<>());
 
             commands.add(command);
-            for(String alias : command.getAliases()) {
+            for (String alias : command.getAliases()) {
                 List<Command> aliases = this.aliases.computeIfAbsent(alias, list -> new ArrayList<>());
                 // TODO: Warn about overlapping aliases.
-                if(aliases.contains(command))
+                if (aliases.contains(command))
                     continue;
 
                 aliases.add(command);
             }
             log.info("Added command, " + command.toString());
-        } else if(object instanceof CommandTree) {
+        } else if (object instanceof CommandTree) {
             CommandTree tree = (CommandTree) object;
             log.info("Registering CommandTree: " + tree.getClass().getSimpleName());
             tree.registerChildren(this);
@@ -79,22 +79,23 @@ public class CommandBase {
                 Cmd cmd = method.getAnnotation(Cmd.class);
                 AnnotatedCommand command = new AnnotatedCommand(cmd, object, method);
                 if (method.isAnnotationPresent(CmdAttribute.class)) {
-                    for(CmdAttribute attrib : method.getAnnotationsByType(CmdAttribute.class)) {
+                    for (CmdAttribute attrib : method.getAnnotationsByType(CmdAttribute.class)) {
                         command.setAttribute(attrib.name(), attrib.value());
                     }
                 }
 
                 Command overlap = checkForOverlaps(command);
                 if (overlap != null) {
-                    log.error(String.format("Found an overlapping command. %s overlaps with previously registered command %s.", command, overlap));
+                    log.error(String.format("Found an overlapping command. %s{%s} overlaps with previously registered command %s{%s}.", command.getName(), command.getFormat(), overlap.getName(), overlap.getFormat()));
                     continue;
                 }
 
                 command.setCommandBase(this);
                 List<Command> commands = this.commands.computeIfAbsent(command.getName(), list -> new ArrayList<>());
                 // TODO: Command overlapping.
+
                 commands.add(command);
-                for(String alias : command.getAliases()) {
+                for (String alias : command.getAliases()) {
                     List<Command> aliases = this.aliases.computeIfAbsent(alias, list -> new ArrayList<>());
                     aliases.add(command);
                 }
@@ -127,15 +128,20 @@ public class CommandBase {
                 } else {
                     List<Command.CommandArg> shorter = cargs.size() < commargs.size() ? cargs : commargs;
                     List<Command.CommandArg> longer = shorter.equals(cargs) ? commargs : cargs;
-                    for (int i = 0; i < shorter.size(); i++) {
-                        Command.CommandArg shortest = shorter.get(i);
-                        Command.CommandArg longest = longer.get(i);
-                        Command.CommandArg longest2 = longer.get(i + 1);
-                        if (i == shorter.size() - 1) {
-                            matches = (shortest.isRequired() && longest.isRequired() && !longest2.isRequired()) || shortest.isRest();
-                        } else if (!shortest.equals(longest)) {
-                            matches = false;
-                            break;
+
+                    if(shorter.isEmpty() && longer.size() >= 1 && longer.get(0).isRequired()) {
+                        matches = false;
+                    } else {
+                        for (int i = 0; i < shorter.size(); i++) {
+                            Command.CommandArg shortest = shorter.get(i);
+                            Command.CommandArg longest = longer.get(i);
+                            Command.CommandArg longest2 = longer.get(i + 1);
+                            if (i == shorter.size() - 1) {
+                                matches = (shortest.isRequired() && longest.isRequired() && !longest2.isRequired()) || shortest.isRest();
+                            } else if (!shortest.equals(longest)) {
+                                matches = false;
+                                break;
+                            }
                         }
                     }
                 }
@@ -167,8 +173,8 @@ public class CommandBase {
             Command canidate = getCommandMatch(sender, command, args);
 
             if (canidate != null) {
-                for(Map.Entry<String, String> flags : mappedFlags.entrySet()) {
-                    if(canidate.getFlags().stream().noneMatch(flag -> flag.contains(flags.getKey()))) {
+                for (Map.Entry<String, String> flags : mappedFlags.entrySet()) {
+                    if (canidate.getFlags().stream().noneMatch(flag -> flag.contains(flags.getKey()))) {
                         CommandPostProcessEvent cpp = new CommandPostProcessEvent(sender, canidate, mappedFlags, mappedFlags, CommandResult.INVALID_FLAGS, new IllegalArgumentException("{ " + flags.getKey() + " } is not a valid flag for the command."));
                         eventListeners.forEach(el -> el.onCommandPostProcess(cpp));
                         return CommandResult.INVALID_FLAGS;
@@ -177,7 +183,7 @@ public class CommandBase {
                 Map<String, String> mappedArguments = canidate.processArgs(args);
                 CommandPreProcessEvent event = new CommandPreProcessEvent(sender, canidate, mappedArguments, mappedFlags);
                 eventListeners.forEach(el -> el.onCommandPreProcess(event));
-                if(!event.isCancelled()) {
+                if (!event.isCancelled()) {
                     try {
                         canidate.run(sender, mappedArguments, mappedFlags);
                         CommandPostProcessEvent cpp = new CommandPostProcessEvent(sender, canidate, mappedArguments, mappedFlags, CommandResult.SUCCESS);
@@ -216,7 +222,7 @@ public class CommandBase {
                 flags.put(s.substring(2, s.indexOf("=")), s.substring(s.indexOf("=") + 1));
             } else {
                 // Process flag escape
-                if(s.startsWith("\\-"))
+                if (s.startsWith("\\-"))
                     processedArgs.add(s.replace("\\", ""));
                 else
                     processedArgs.add(s);
@@ -273,11 +279,11 @@ public class CommandBase {
      */
     public void removeCommand(Command command) {
         List<Command> commands = this.commands.get(command.getName());
-        if(commands != null)
+        if (commands != null)
             commands.remove(command);
-        for(String alias : command.getAliases()) {
+        for (String alias : command.getAliases()) {
             List<Command> aliased = this.aliases.get(alias);
-            if(aliased != null)
+            if (aliased != null)
                 aliased.remove(command);
         }
     }
@@ -297,7 +303,7 @@ public class CommandBase {
 
     public List<Command> getCommand(String command) {
         List<Command> commands = this.commands.get(command);
-        if(commands == null)
+        if (commands == null)
             commands = aliases.get(command);
         return commands;
     }
@@ -311,12 +317,12 @@ public class CommandBase {
     }
 
     public void updateAliases(Command command, List<String> old, List<String> newaliases) {
-        for(String alias : old) {
+        for (String alias : old) {
             List<Command> commands = this.aliases.get(alias);
-            if(commands != null)
+            if (commands != null)
                 commands.remove(command);
         }
-        for(String alias : newaliases) {
+        for (String alias : newaliases) {
             List<Command> commands = this.aliases.computeIfAbsent(alias, list -> new ArrayList<>());
             commands.add(command);
         }
