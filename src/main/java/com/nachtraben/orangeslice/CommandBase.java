@@ -13,6 +13,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by NachtRaben on 2/4/2017.
@@ -25,6 +26,7 @@ public class CommandBase {
     private Map<String, List<Command>> aliases;
     private ExecutorService executor;
     private boolean processFlags = true;
+    public boolean debug = false;
 
     private List<CommandEventListener> eventListeners;
 
@@ -66,10 +68,12 @@ public class CommandBase {
 
                 aliases.add(command);
             }
-            log.info("Added command, " + command.toString());
+            if (debug)
+                log.info("Added command, " + command.toString());
         } else if (object instanceof CommandTree) {
             CommandTree tree = (CommandTree) object;
-            log.info("Registering CommandTree: " + tree.getClass().getSimpleName());
+            if (debug)
+                log.info("Registering CommandTree: " + tree.getClass().getSimpleName());
             tree.registerChildren(this);
         }
 
@@ -99,7 +103,8 @@ public class CommandBase {
                     List<Command> aliases = this.aliases.computeIfAbsent(alias, list -> new ArrayList<>());
                     aliases.add(command);
                 }
-                log.info("Added command, " + command.toString());
+                if (debug)
+                    log.info("Added command, " + command.toString());
             }
         }
     }
@@ -129,7 +134,7 @@ public class CommandBase {
                     List<Command.CommandArg> shorter = cargs.size() < commargs.size() ? cargs : commargs;
                     List<Command.CommandArg> longer = shorter.equals(cargs) ? commargs : cargs;
 
-                    if(shorter.isEmpty() && longer.size() >= 1 && longer.get(0).isRequired()) {
+                    if (shorter.isEmpty() && longer.size() >= 1 && longer.get(0).isRequired()) {
                         matches = false;
                     } else {
                         for (int i = 0; i < shorter.size(); i++) {
@@ -327,4 +332,14 @@ public class CommandBase {
             commands.add(command);
         }
     }
+
+    public void shutdown() {
+        executor.shutdown();
+        try {
+            executor.awaitTermination(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            log.warn("Failed to safely shutdown command executor.", e);
+        }
+    }
+
 }
