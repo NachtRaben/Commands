@@ -25,7 +25,6 @@ pipeline {
                 sh 'gradle clean shadowJar publish'
             }
         }
-            }
         // Save the build artifacts for automatic deployment
         stage ('Archive') {
             steps {
