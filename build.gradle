@@ -5,17 +5,12 @@ buildscript {
         }
     }
 
-    dependencies {
-        classpath "com.github.jengelman.gradle.plugins:shadow:6.1.0"
-    }
-
     apply from: "https://dev.savage.games/commons.gradle"
 }
 
 plugins {
     id 'idea'
     id 'java-library'
-    id "com.github.johnrengelman.shadow" version "6.1.0"
 }
 
 allprojects {

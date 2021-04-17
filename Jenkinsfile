@@ -22,7 +22,7 @@ pipeline {
         // Test code can compile successfully
         stage ('Build') {
             steps {
-                sh 'gradle clean shadowJar publish'
+                sh 'gradle clean jar publish'
             }
         }
         // Save the build artifacts for automatic deployment
