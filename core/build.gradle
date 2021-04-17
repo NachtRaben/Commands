@@ -8,7 +8,7 @@ publishing {
     publications {
         maven(MavenPublication) {
             groupId = rootProject.group
-            artifactId = 'command'
+            artifactId = 'commands'
             version = rootProject.version
             artifact shadowJar
             artifact sourcesJar
