@@ -1,20 +1,19 @@
-package com.nachtraben.orangeslice.event;
+package dev.armadeus.command.event;
 
-import com.nachtraben.orangeslice.command.Command;
-import com.nachtraben.orangeslice.CommandSender;
+import dev.armadeus.command.CommandResult;
+import dev.armadeus.command.CommandSender;
+import dev.armadeus.command.command.Command;
 
 import java.util.Map;
 
-/**
- * Event used to determine if commands should be ran.
- */
-public class CommandPreProcessEvent {
+public class CommandPostProcessEvent {
 
     private CommandSender sender;
     private Command command;
     private Map<String, String> args;
     private Map<String, String> flags;
-    private boolean cancelled = false;
+    private CommandResult result;
+    private Throwable throwable;
 
     /**
      * Instantiates a new Command Pre-Process event.
@@ -24,11 +23,17 @@ public class CommandPreProcessEvent {
      * @param args    the args
      * @param flags   the flags
      */
-    public CommandPreProcessEvent(CommandSender sender, Command command, Map<String, String> args, Map<String, String> flags) {
+    public CommandPostProcessEvent(CommandSender sender, Command command, Map<String, String> args, Map<String, String> flags, CommandResult result) {
+        this(sender, command, args, flags, result, null);
+    }
+
+    public CommandPostProcessEvent(CommandSender sender, Command command, Map<String, String> args, Map<String, String> flags, CommandResult result, Throwable throwable) {
         this.sender = sender;
         this.command = command;
         this.args = args;
         this.flags = flags;
+        this.result = result;
+        this.throwable = throwable;
     }
 
     /**
@@ -67,19 +72,11 @@ public class CommandPreProcessEvent {
         return flags;
     }
 
-    /**
-     * Is cancelled boolean.
-     *
-     * @return the boolean
-     */
-    public boolean isCancelled() {
-        return cancelled;
+    public CommandResult getResult() {
+        return result;
     }
 
-    /**
-     * Sets cancelled.
-     */
-    public void setCancelled() {
-        cancelled = true;
+    public Throwable getException() {
+        return throwable;
     }
 }

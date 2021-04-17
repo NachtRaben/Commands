@@ -1,4 +1,4 @@
-package com.nachtraben.orangeslice.event;
+package dev.armadeus.command.event;
 
 /**
  * Created by NachtRaben on 3/9/2017.

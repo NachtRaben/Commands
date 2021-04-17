@@ -1,4 +1,4 @@
-package com.nachtraben.orangeslice.command;
+package dev.armadeus.command.command;
 
 public abstract class SubCommand extends Command {
 

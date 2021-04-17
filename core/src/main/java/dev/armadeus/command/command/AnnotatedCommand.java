@@ -1,7 +1,7 @@
-package com.nachtraben.orangeslice.command;
+package dev.armadeus.command.command;
 
-import com.nachtraben.orangeslice.CommandCreationException;
-import com.nachtraben.orangeslice.CommandSender;
+import dev.armadeus.command.CommandCreationException;
+import dev.armadeus.command.CommandSender;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -14,9 +14,9 @@ import java.util.Map;
  */
 public class AnnotatedCommand extends Command {
 
-    Cmd cmd;
-    Object methodHolder;
-    Method method;
+    private Cmd cmd;
+    private Object methodHolder;
+    private Method method;
 
     int size = 0;
 

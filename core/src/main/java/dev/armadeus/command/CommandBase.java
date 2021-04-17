@@ -1,10 +1,14 @@
-package com.nachtraben.orangeslice;
+package dev.armadeus.command;
 
-import com.nachtraben.orangeslice.command.*;
-import com.nachtraben.orangeslice.event.CommandEventListener;
-import com.nachtraben.orangeslice.event.CommandExceptionEvent;
-import com.nachtraben.orangeslice.event.CommandPostProcessEvent;
-import com.nachtraben.orangeslice.event.CommandPreProcessEvent;
+import dev.armadeus.command.command.AnnotatedCommand;
+import dev.armadeus.command.command.Cmd;
+import dev.armadeus.command.command.CmdAttribute;
+import dev.armadeus.command.command.Command;
+import dev.armadeus.command.command.CommandTree;
+import dev.armadeus.command.event.CommandEventListener;
+import dev.armadeus.command.event.CommandExceptionEvent;
+import dev.armadeus.command.event.CommandPostProcessEvent;
+import dev.armadeus.command.event.CommandPreProcessEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

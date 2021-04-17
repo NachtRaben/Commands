@@ -1,7 +1,7 @@
-package com.nachtraben.orangeslice.event;
+package dev.armadeus.command.event;
 
-import com.nachtraben.orangeslice.CommandSender;
-import com.nachtraben.orangeslice.command.Command;
+import dev.armadeus.command.CommandSender;
+import dev.armadeus.command.command.Command;
 
 public class CommandExceptionEvent {
 

@@ -1,4 +1,4 @@
-package com.nachtraben.orangeslice;
+package dev.armadeus.command;
 
 import java.util.concurrent.Future;
 

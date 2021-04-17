@@ -1,6 +1,6 @@
-package com.nachtraben.orangeslice;
+package dev.armadeus.command;
 
-import com.nachtraben.orangeslice.command.Command;
+import dev.armadeus.command.command.Command;
 
 /**
  * Created by NachtRaben on 3/8/2017.

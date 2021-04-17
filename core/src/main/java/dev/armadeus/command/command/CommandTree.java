@@ -1,6 +1,6 @@
-package com.nachtraben.orangeslice.command;
+package dev.armadeus.command.command;
 
-import com.nachtraben.orangeslice.CommandBase;
+import dev.armadeus.command.CommandBase;
 
 import java.util.ArrayList;
 import java.util.Iterator;

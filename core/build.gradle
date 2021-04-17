@@ -1,0 +1,18 @@
+apply plugin: 'com.github.johnrengelman.shadow'
+
+dependencies {
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = rootProject.group
+            artifactId = 'command'
+            version = rootProject.version
+            artifact shadowJar
+            artifact sourcesJar
+            artifact javadocJar
+        }
+    }
+}

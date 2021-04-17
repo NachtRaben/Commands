@@ -1,22 +1,22 @@
-package com.nachtraben.orangeslice.command;
+package dev.armadeus.command.command;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * Created by NachtRaben on 2/3/2017.
- */
-
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface Cmd {
+public @interface CmdAttribute {
 
     String name();
-    String format();
-    String description();
-    String[] aliases() default {};
-    String[] flags() default {};
+
+
+    /**
+     * The value of this attribute.
+     *
+     * @return the string
+     */
+    String value() default "";
 
 }

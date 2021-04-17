@@ -1,36 +1,73 @@
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+
+    dependencies {
+        classpath "com.github.jengelman.gradle.plugins:shadow:6.1.0"
+    }
+
+    apply from: "https://dev.savage.games/commons.gradle"
+}
+
 plugins {
-    id 'java'
-    id 'maven'
-    id "com.github.johnrengelman.shadow" version "2.0.1"
+    id 'idea'
+    id 'java-library'
+    id 'application'
+    id "com.github.johnrengelman.shadow" version "6.1.0"
 }
 
-group 'com.nachtraben'
-version '1.0'
+allprojects {
+    apply plugin: 'idea'
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+    group 'dev.armadeus'
+    version GIT_BRANCH
 
-repositories {
-    mavenCentral()
-}
+    ext {
+        nexusUser = System.getenv("NEXUS_USR") ?: loadProperty("nexus.nachtraben.user")
+        nexusPass = System.getenv("NEXUS_PSW") ?: loadProperty("nexus.nachtraben.pass")
 
-dependencies {
-    compile 'org.slf4j:slf4j-api:1.7.25'
-    testCompile 'ch.qos.logback:logback-classic:1.1.9'
-}
+        lombokVersion = '1.18.20'
+        slf4jVersion = '1.7.30'
+    }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
+    java {
+        sourceCompatibility = targetCompatibility = JavaVersion.VERSION_11
+    }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
+    configurations.all {
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+        resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
+    }
 
-artifacts {
-    archives sourcesJar
-    archives javadocJar
+    compileJava.options.encoding = javadoc.options.encoding = "UTF-8"
+
+    repositories {
+        mavenCentral()
+        maven {
+            name = "NachtRaben-Nexus"
+            url = "https://nachtraben.com/nexus/repository/maven-public/"
+            credentials {
+                username = nexusUser
+                password = nexusPass
+            }
+        }
+    }
+
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        archiveName = project.name + '-sources.jar'
+        from project.sourceSets.main.allSource
+    }
+
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        archiveName = rootProject.name + '-javadoc.jar'
+        from javadoc.destinationDir
+    }
 }
 

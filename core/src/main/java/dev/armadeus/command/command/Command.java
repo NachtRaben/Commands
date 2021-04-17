@@ -1,8 +1,8 @@
-package com.nachtraben.orangeslice.command;
+package dev.armadeus.command.command;
 
-import com.nachtraben.orangeslice.CommandBase;
-import com.nachtraben.orangeslice.CommandCreationException;
-import com.nachtraben.orangeslice.CommandSender;
+import dev.armadeus.command.CommandBase;
+import dev.armadeus.command.CommandCreationException;
+import dev.armadeus.command.CommandSender;
 
 import java.util.*;
 import java.util.regex.Pattern;
